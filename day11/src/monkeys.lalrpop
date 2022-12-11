@@ -1,0 +1,38 @@
+use crate::state::*;
+
+grammar;
+
+pub Monkeys = <Monkey*>;
+
+Level: Level = r"[0-9]+" => <>.parse().unwrap();
+
+Operator: Operator = {
+    "+" => Operator::Add,
+    "*" => Operator:: Multiply,
+}
+
+Operand: Operand = {
+    "old" => Operand::Old,
+    Level => Operand::Level(<>)
+}
+
+Operation: Operation = {
+    "new" "=" <lhs:Operand> <op:Operator> <rhs:Operand> => Operation { <> }
+}
+
+Condition = "divisible by" <Level>;
+
+Action: usize = "throw to monkey" <r"[0-9]+"> => <>.parse().unwrap();
+
+List<T>: Vec<T> = {
+    <mut v:(<T> ",")*> <e:T> => { v.push(e); v }
+}
+
+Monkey: Monkey =
+    r"Monkey [0-9]+:"
+    "Starting items:" <items:List<Level>>
+    "Operation:" <operation:Operation>
+    "Test:" <divisor:Condition>
+    "If true:" <if_true:Action>
+    "If false:" <if_false:Action>
+    => Monkey { items, operation, test: Test { divisor, if_true, if_false }};
